@@ -86,22 +86,21 @@ void AS1115_Write(AS1115Registers_t SelectedRegister, uint8_t Value){
 
     // verificam daca statusul pentru i2c este ok
     // daca statusul e negativ, atunci marcam flag-ul
-    if ( status == I2C_CH_FINISHED ) {
+    if ( status == I2C_CH_IDLE || status == I2C_CH_FINISHED ) {
         i2c_succes = true;
         nack = false;
         timeout = false;
-    } else if (status == I2C_CH_ERROR_PRESENT) {
+    } else {
     	// marcam ca exista erori
     	i2c_succes = false;
 
-    	// ambele flaguri vor fi marcate
-    	// nu exista in NXP erori de NACK in mod specific
-    	nack = true;
-    	timeout = true;
-	} else {
-		// avem transmitere completa in default
-		i2c_succes = false;
-	}
+    	if (status == I2C_CH_ERROR_PRESENT){
+    		// ambele flaguri vor fi marcate
+    		// nu exista in NXP erori de NACK in mod specific
+    		nack = true;
+    		timeout = true;
+    	}
+    }
 }
 
 uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
@@ -125,21 +124,20 @@ uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
 
     // verificam daca statusul pentru i2c este ok
     // daca statusul e negativ, atunci marcam flag-ul
-    if ( status == I2C_CH_FINISHED ) {
+    if ( status == I2C_CH_IDLE || status == I2C_CH_FINISHED ) {
     	i2c_succes = true;
         nack = false;
         timeout = false;
-    } else if (status == I2C_CH_ERROR_PRESENT) {
+    } else {
        	// marcam ca exista erori
        	i2c_succes = false;
 
-       	// ambele flaguri vor fi marcate
-       	// nu exista in NXP erori de NACK in mod specific
-       	nack = true;
-       	timeout = true;
-    } else {
-    	// avem receptie completa in default
-    	i2c_succes = false;
+       	if (status == I2C_CH_ERROR_PRESENT){
+       		// ambele flaguri vor fi marcate
+       		// nu exista in NXP erori de NACK in mod specific
+       		nack = true;
+       		timeout = true;
+       	}
     }
 
     //citim valoarea
@@ -157,22 +155,21 @@ uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
 
     // verificam daca statusul pentru i2c este ok
     // daca statusul e negativ, atunci marcam flag-ul
-    if ( status == I2C_CH_FINISHED ) {
+    if ( status == I2C_CH_IDLE || status == I2C_CH_FINISHED ) {
     	i2c_succes = true;
         nack = false;
         timeout = false;
-    } else if (status == I2C_CH_ERROR_PRESENT) {
+    } else {
       	// marcam ca exista erori
        	i2c_succes = false;
 
-       	// ambele flaguri vor fi marcate
-        // nu exista in NXP erori de NACK in mod specific
-        nack = true;
-        timeout = true;
-    } else {
-    	// avem receptie completa in default
-    	i2c_succes = false;
-   	}
+       	if (status == I2C_CH_ERROR_PRESENT) {
+       		// ambele flaguri vor fi marcate
+       		// nu exista in NXP erori de NACK in mod specific
+       		nack = true;
+        	timeout = true;
+       	}
+    }
 
     return value;
 }
