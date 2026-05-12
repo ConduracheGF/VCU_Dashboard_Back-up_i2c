@@ -132,7 +132,7 @@ int main(void)
     }
 
 
-    Segments_Init();
+    //Segments_Init();
     Segments_Test();
 	Display_Init(); //sa pornesti aici
 	/*while(1){
@@ -253,10 +253,10 @@ int main(void)
         	procentaj = (uint16)(tensiune - 600U) * 5U / 2U;//procentaj calculat cu o virgula
         }
         if(procentaj < 1000U){
-            SevenSegmentDisplayDecimalValue(2, procentaj, 1);
+            //SevenSegmentDisplayDecimalValue(2, procentaj, 1);
         }
         else{
-            SevenSegmentDisplayDecimalValue(2, procentaj/10U, 0);
+            //SevenSegmentDisplayDecimalValue(2, procentaj/10U, 0);
         }
         tempMaxim = 0;
         if(tempController > tempMotor){
@@ -268,16 +268,16 @@ int main(void)
         //aici ma bag la creatie sa modific o temperatura
         tempMotor=Creatie;
 
-        SevenSegmentDisplayDecimalValue(0, tempMaxim, 0);
+        //SevenSegmentDisplayDecimalValue(0, tempMaxim, 0);
         viteza = 0;
         if(rpm != 0){
         	viteza = (rpm * 84807U) / 312500U;
         }
         if(viteza < 1000U){
-            SevenSegmentDisplayDecimalValue(1, viteza, 1);
+            //SevenSegmentDisplayDecimalValue(1, viteza, 1);
         }
         else{
-            SevenSegmentDisplayDecimalValue(1, viteza/10U, 0);
+            //SevenSegmentDisplayDecimalValue(1, viteza/10U, 0);
         }
 		//actualizare interfata display
 		//TODO martori de bord

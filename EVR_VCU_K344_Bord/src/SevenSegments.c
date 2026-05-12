@@ -57,12 +57,18 @@ static uint8_t displayBuffer[8] = {0};
 static SegmentsState_t g_sistem_state = INITIALIZING;
 
 // -- Variabile de flag pentru state machine
+// index stare curenta: 0 = nimic, 1 = initializing, 2 = i2c_error, 3 = operational
 static uint8_t index = 0;
+// gestionarea resetului pentru initializing
 static uint8_t reset_flag = 0;
-static bool i2c_success = true;
-static bool timeout = false;
+// transmitere cu succes pe i2c
+bool i2c_succes = true;
+// intarziere de trimitere
+bool timeout = false;
+// recuperare din i2c_error
 static bool recovery = false;
-static bool nack = false;
+// nack la raspunsul primit
+bool nack = false;
 //
 /*==================================================================================================
 *                                      GLOBAL CONSTANTS
@@ -240,7 +246,7 @@ SegmentsState_t System_Get_State(void) {
 void System_Reset(void) {
 	g_sistem_state = INITIALIZING;
 	reset_flag = 0;
-	i2c_success = true;
+	i2c_succes = true;
 	recovery = true;
 	timeout = false;
 	nack = false;
@@ -253,11 +259,11 @@ void System_Task_Run(void){
 		case INITIALIZING:
 			index = 1;
 
-			//facem initializarea
+			// facem initializarea
 			Segments_Init();
 
-			//verificam cazuri critice
-			if ( reset_flag == 1 ) {
+			// verificam cazuri critice
+			if ( reset_flag == 1 && i2c_succes == false && timeout == false ) {
 				g_sistem_state = INITIALIZING;
 			} else if ( i2c_succes == true && timeout == false ) {
 				g_sistem_state = OPERATIONAL;
@@ -267,33 +273,47 @@ void System_Task_Run(void){
 
 			break;
 	
-		case OPERATIONAL:
-			//actualizam index
-			index = 3;
-			
-			//afisam date
-			Segments_Update();
-
-			//verificari critice
-			if ( timeout == false ) {
-				g_sistem_state = OPERATIONAL;
-			} else if ( timeout == true && nack == true ) {
-				g_sistem_state = I2C_ERROR;
-			}
-			break;
-		
 		case I2C_ERROR:
-			//actualizam index
+			// actualizam index
 			index = 2;
-			reset_flag = 1;
-			System_Reset();
 
+			// resetam flagurile si starea
+			System_Reset();
+			// fortam o reinitializare
+			Segments_Init();
+
+			// verificam functionalitate
+			if ( i2c_succes == true && timeout == false && nack == false ) {
+				recovery = true;
+			} else {
+				recovery = false;
+			}
+
+			//trimitem la starea urmatoare
 			if( recovery == false ) {
 				g_sistem_state = I2C_ERROR;
-			} else if ( i2c_success == false && timeout == false && recovery == true) {
+			} else if ( i2c_succes == false && timeout == false && recovery == true) {
+				g_sistem_state = INITIALIZING;
+			} else {
+				// stare de default
 				g_sistem_state = INITIALIZING;
 			}
 
+			break;
+
+		case OPERATIONAL:
+			// actualizam index
+			index = 3;
+			
+			// afisam date
+			Segments_Update();
+
+			// verificari critice
+			if ( i2c_succes == true && timeout == false && nack == false ) {
+			    g_sistem_state = OPERATIONAL;
+			} else {
+			    g_sistem_state = I2C_ERROR;
+			}
 			break;
 	}
 }
