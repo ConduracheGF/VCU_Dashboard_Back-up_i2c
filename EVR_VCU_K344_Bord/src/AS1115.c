@@ -76,7 +76,10 @@ void AS1115_Write(AS1115Registers_t SelectedRegister, uint8_t Value){
     request.DataDirection = I2C_SEND_DATA;
     request.DataBuffer = buffer;
 
-    I2c_SyncTransmit(I2C_USED_CHANNEL, &request); //cerere pe canalul 0
+    I2c_StatusType status = I2c_SyncTransmit(I2C_USED_CHANNEL, &request); //cerere pe canalul 0
+    if ( status != I2C_OK ) {
+        i2c_success = false;
+    }
 }
 
 uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
@@ -95,7 +98,10 @@ uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
     request.DataDirection = I2C_SEND_DATA;
     request.DataBuffer = (uint8_t*)&SelectedRegister;
 
-    I2c_SyncTransmit(I2C_USED_CHANNEL, &request);
+    I2c_StatusType status = I2c_SyncTransmit(I2C_USED_CHANNEL, &request);
+    if( status != I2C_OK ){
+        i2c_success = false;
+    }
 
     //citim valoarea
     request.SlaveAddress = DRIVER_SLAVE_ADDRESS;
@@ -107,7 +113,10 @@ uint8_t AS1115_Read(AS1115Registers_t SelectedRegister){
     request.DataDirection = I2C_RECEIVE_DATA;
     request.DataBuffer = &value;
 
-    I2c_SyncTransmit(I2C_USED_CHANNEL, &request);
+    I2c_StatusType status = I2c_SyncTransmit(I2C_USED_CHANNEL, &request);
+    if ( status != I2C_OK ) {
+        i2c_success = false;
+    }
 
     return value;
 }
