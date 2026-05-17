@@ -90,7 +90,39 @@ extern "C"
 
 
 
+/**
+* @brief            The callback configured by the user for i2c events.
+*/
 
+#define I2C_MODULE_CALLBACK(Event, Channel) (I2c_Callback(Event, Channel))
+
+#define I2C_START_SEC_CODE
+#include "I2c_MemMap.h"
+
+/**
+* @brief            The callback configured by the user for i2c events.
+*/
+extern void I2C_MODULE_CALLBACK(uint8 Event, uint8 Channel);
+
+#define I2C_STOP_SEC_CODE
+#include "I2c_MemMap.h"
+
+/**
+* @brief            The  callback configured by the user for i2c error events.
+*/
+
+#define I2C_ERROR_CALLBACK(Event, Channel) (I2c_ErrorCallback(Event, Channel))
+
+#define I2C_START_SEC_CODE
+#include "I2c_MemMap.h"
+
+/**
+* @brief            The callback configured by the user for i2c error events.
+*/
+extern void I2C_ERROR_CALLBACK(uint8 Event, uint8 Channel);
+
+#define I2C_STOP_SEC_CODE
+#include "I2c_MemMap.h"
 
 /*==================================================================================================
 *                                              ENUMS

@@ -3332,6 +3332,13 @@
                                     <setting name="IsrPriority" value="0"/>
                                     <setting name="IsrHandler" value="EMIOS0_4_IRQ"/>
                                  </struct>
+                                 <struct name="7">
+                                    <setting name="Name" value="I2C_Segmente"/>
+                                    <setting name="IsrName" value="LPI2C1_IRQn"/>
+                                    <setting name="IsrEnabled" value="true"/>
+                                    <setting name="IsrPriority" value="0"/>
+                                    <setting name="IsrHandler" value="LPI2C1_Master_Slave_IRQHandler"/>
+                                 </struct>
                               </array>
                               <array name="PlatformNvicEcucPartitionRef"/>
                            </struct>
@@ -3925,8 +3932,12 @@
                            <setting name="I2cTimeoutDuration" value="65535"/>
                            <setting name="I2cTimeoutMethod" value="OSIF_COUNTER_DUMMY"/>
                            <setting name="VendorId" value="0"/>
-                           <array name="I2cCallback"/>
-                           <array name="I2cErrorCallback"/>
+                           <array name="I2cCallback">
+                              <setting name="0" value="I2c_Callback"/>
+                           </array>
+                           <array name="I2cErrorCallback">
+                              <setting name="0" value="I2c_ErrorCallback"/>
+                           </array>
                         </struct>
                         <struct name="I2cGlobalConfig">
                            <setting name="Name" value="I2cGlobalConfig"/>

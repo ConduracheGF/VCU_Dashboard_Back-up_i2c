@@ -78,6 +78,7 @@ extern void CAN0_ORED_IRQHandler(void);
 extern void CAN0_ORED_0_31_MB_IRQHandler(void);
 extern void CAN0_ORED_32_63_MB_IRQHandler(void);
 extern void EMIOS0_4_IRQ(void);
+extern void LPI2C1_Master_Slave_IRQHandler(void);
 
 #define PLATFORM_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Platform_MemMap.h"

@@ -154,6 +154,72 @@ extern "C"
 */
 #define I2C_TIMEOUT (65535U)
 
+/**
+* @brief            I2c slave bit error event
+*/
+#define  I2C_EVENT_BIT_ERROR_SLAVE  (0x00U)
+
+/**
+* @brief            I2c slave underrun event
+*/
+#define  I2C_EVENT_UNDERRUN_SLAVE  (0x01U)
+
+/**
+* @brief            I2c slave overrun event
+*/
+#define  I2C_EVENT_OVERRUN_SLAVE  (0x02U)
+/**
+* @brief            I2c slave rx buffer full
+*/
+#define  I2C_EVENT_RX_FULL_SLAVE  (0x03U)
+
+/**
+* @brief            I2c slave tx buffer empty
+*/
+#define  I2C_EVENT_TX_EMPTY_SLAVE  (0x04U)
+
+/**
+* @brief            I2c slave tx request 
+*/
+#define  I2C_EVENT_TX_REQ_SLAVE (0x05U)
+
+/**
+* @brief            I2c slave rx request
+*/
+#define  I2C_EVENT_RX_REQ_SLAVE (0x06U)
+
+/**
+* @brief            I2c slave stop transfer 
+*/
+#define  I2C_EVENT_STOP_SLAVE (0x07U)
+/**
+* @brief            I2c NACK event
+*/
+#define  I2C_EVENT_NACK_MASTER  (0x08U)
+
+/**
+* @brief            I2c master arbitration lost event
+*/
+#define  I2C_EVENT_ARBITRATION_LOST_MASTER  (0x09U)
+
+/**
+* @brief            I2c master fifo error
+*/
+#define  I2C_EVENT_ERROR_FIFO_MASTER  (0x0AU)
+/**
+* @brief            I2c master end transfer 
+*/
+#define I2C_EVENT_END_TRANSFER_MASTER  (0x0BU)
+
+/**
+* @brief            I2c master pin low timeout
+*/
+#define I2C_EVENT_PIN_LOW_TIMEOUT_MASTER  (0x0CU)
+
+/**
+* @brief            I2c master dma transfer error event
+*/
+#define I2C_EVENT_DMA_TRANSFER_ERROR_MASTER (0x0DU)
 
 /**
 * @brief        Variable storing number of maximum partitions using in configuration.

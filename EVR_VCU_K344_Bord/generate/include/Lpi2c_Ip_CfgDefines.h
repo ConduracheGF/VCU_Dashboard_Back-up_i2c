@@ -89,7 +89,7 @@ extern "C"
 /**
 * @brief            Event error detection for IP layer
 */
-#define LPI2C_IP_EVENT_ERROR_DETECT   (STD_OFF)
+#define LPI2C_IP_EVENT_ERROR_DETECT   (STD_ON)
 
 /**
 * @brief            Dma transfer error of the i2c module enable/disabled

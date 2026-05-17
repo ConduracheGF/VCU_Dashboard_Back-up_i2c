@@ -115,7 +115,7 @@ extern "C"
 /**
 * @brief            Event error detection for IP layer
 */
-#define FLEXIO_I2C_IP_EVENT_ERROR_DETECT   (STD_OFF)
+#define FLEXIO_I2C_IP_EVENT_ERROR_DETECT   (STD_ON)
 
 /**
 * @brief            Dma support enable/disabled
