@@ -97,6 +97,8 @@ extern "C"
 ==================================================================================================*/
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
+extern const Pit_Ip_InstanceConfigType PIT_0_InitConfig_PB;
+extern const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U];
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 

@@ -160,7 +160,7 @@ extern "C"{
  * @brief   GPT instances related configuration array
  */
 
-Gpt_Ipw_HwInstanceConfigType Gpt_Ipw_HwInstanceConfig_PB[1U] =
+Gpt_Ipw_HwInstanceConfigType Gpt_Ipw_HwInstanceConfig_PB[2U] =
 {
     {
         /** @brief IP type  */
@@ -172,13 +172,24 @@ Gpt_Ipw_HwInstanceConfigType Gpt_Ipw_HwInstanceConfig_PB[1U] =
             NULL_PTR,
             NULL_PTR
         }
+    },
+    {
+        /** @brief IP type  */
+        GPT_PIT_MODULE,
+        /** @brief IP instance */
+        0U,
+        /** @brief IP instance pointer */
+        {
+            &PIT_0_InitConfig_PB,
+            NULL_PTR
+        }
     }
 };
 
 /** 
  * @brief   GPT channels IP related configuration array
  */
-Gpt_Ipw_HwChannelConfigType Gpt_Ipw_ChannelConfig_PB[2U] =
+Gpt_Ipw_HwChannelConfigType Gpt_Ipw_ChannelConfig_PB[3U] =
 {
 /** @brief Gpt_FS26 */
     {
@@ -209,6 +220,21 @@ Gpt_Ipw_HwChannelConfigType Gpt_Ipw_ChannelConfig_PB[2U] =
             NULL_PTR,
             NULL_PTR,
             &EMIOS_0_ChannelConfig_PB[1U]
+        }
+    }/** @brief GptChannelConfiguration_for_timer_recover_i2c */,
+    {
+        /** @brief IP type  */
+        GPT_PIT_MODULE,
+        /** @brief IP instance */
+        0U,
+        /**@brief IP channel */
+        0U,
+        /** @brief IP channel pointer */
+        {
+            &PIT_0_ChannelConfig_PB[0U],
+            NULL_PTR,
+            NULL_PTR,
+            NULL_PTR
         }
     }
 };

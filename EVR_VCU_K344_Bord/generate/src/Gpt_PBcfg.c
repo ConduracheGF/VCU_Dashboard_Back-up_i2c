@@ -114,6 +114,7 @@ extern "C"{
 * @brief The callback functions defined by the user to be called as channel notifications
 */
 extern void Gpt_Pedals(void);
+extern void Timer_Callback(void);
 
 /*==================================================================================================
 *                                       GLOBAL CONSTANTS
@@ -121,7 +122,7 @@ extern void Gpt_Pedals(void);
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 /* Number of channels per variant without partitions */
-#define GPT_CONF_CHANNELS_PB 2U
+#define GPT_CONF_CHANNELS_PB 3U
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 
@@ -150,7 +151,8 @@ static const Gpt_HwPredefChannelConfigType *const Gpt_pInitPredefTimerChannelPB[
 static const uint8 u8GptChannelIdToIndexMap[GPT_NUM_CONFIG] = 
 {
     0        /*Logical Channel Gpt_FS26*/,
-    1        /*Logical Channel Gpt_Pedale*/
+    1        /*Logical Channel Gpt_Pedale*/,
+    2        /*Logical Channel GptChannelConfiguration_for_timer_recover_i2c*/
 };
 #define GPT_STOP_SEC_CONST_UNSPECIFIED
 #include "Gpt_MemMap.h"
@@ -184,16 +186,27 @@ static const Gpt_ChannelConfigType Gpt_InitChannelPB[GPT_CONF_CHANNELS_PB]=
         (GPT_CH_MODE_CONTINUOUS),/* Timer mode:continous/one-shot */
         &Gpt_Ipw_ChannelConfig_PB[1U]
     }
+,
+    {    /*GptChannelConfiguration_for_timer_recover_i2c configuration data*/
+        (boolean)FALSE,/* Wakeup capability */
+        &Timer_Callback, /* Channel notification */
+#if ((GPT_WAKEUP_FUNCTIONALITY_API == STD_ON) && (GPT_REPORT_WAKEUP_SOURCE == STD_ON))
+        (EcuM_WakeupSourceType)0U,/* Wakeup information */
+#endif
+        (Gpt_ValueType)(4294967295U),/* Maximum ticks value*/
+        (GPT_CH_MODE_CONTINUOUS),/* Timer mode:continous/one-shot */
+        &Gpt_Ipw_ChannelConfig_PB[2U]
+    }
 };
 
 const Gpt_ConfigType Gpt_Config = 
 {
     /** @brief Number of GPT channels (configured in tresos plugin builder)*/
-    (Gpt_ChannelType)2U,
+    (Gpt_ChannelType)3U,
     /**@brief Pointer to the GPT channel configuration */
     &Gpt_InitChannelPB,
     /** @brief Number of GPT instances (configured in tresos plugin builder)*/
-    1U,
+    2U,
     /** @brief Pointer to the GPT instance configuration */
     &Gpt_Ipw_HwInstanceConfig_PB,
 #if(GPT_PREDEFTIMER_FUNCTIONALITY_API == STD_ON)

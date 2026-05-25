@@ -12,6 +12,7 @@ extern "C" {
 
 #include "Dio.h"
 #include "Port.h"
+#include "Gpt.h"
 #include "stdint.h"
 #include "CDD_I2c.h"
 #include "AS1115.h"
@@ -30,6 +31,7 @@ extern "C" {
 #define SCL_PORT						IP_SIUL2
 #define SCL_PIN_IDX_CALCULAT			62U
 #define SCL_PIN_IDX_NORMAL				14U
+#define GPT_RECOVER_CHANNEL  GptConf_GptChannelConfiguration_GptChannelConfiguration_for_timer_recover_i2c
 
 /*==================================================================================================
 *                                      LOCAL CONSTANTS
@@ -75,7 +77,10 @@ static uint8_t reset_flag = 0;
 static bool i2c_succes = true;
 // flag de eroare
 static bool i2c_error_flag = false;
-//
+// pentru a face cele 9 clock uri la mana
+static uint8_t recover_clk_count = 0;
+// pentru a marca recoverul
+static bool recover_in_progress = false;
 /*==================================================================================================
 *                                      GLOBAL CONSTANTS
 ==================================================================================================*/
@@ -239,22 +244,25 @@ void Segments_Update(void){
 
 				switch (index) {
 						case 0:
+							i2c_succes = false;
 							// -- Seteaza modul Shutdown cu Reset Feature Register
 							AS1115_Write(SHUTDOWN, 0x00);
 							index++;
 							break;
 						case 1:
+							i2c_succes = false;
 							// -- Seteaza Luminozitatea Globala la 7 Segment Display-uri
 							AS1115_Write(GLOBAL_INTENSITY, 0x0F);
 							index++;
 							break;
 						case 2:
+							i2c_succes = false;
 							// -- Schimba Feature Register pentru modul de decodificare al 7 Segment Display
 							AS1115_Write(FEATURE, 0x00);
 							index++;
 							break;
 						case 3:
-
+							i2c_succes = false;
 							// -- Seteaza ca toate Segmentele de pe display sa fie stinse
 							// -- Se pune cifra cu cifra
 							AS1115_Write((AS1115Registers_t)(DIGIT0 + indexDigits), 0x0F);
@@ -265,17 +273,20 @@ void Segments_Update(void){
 							}
 							break;
 						case 4:
+							i2c_succes = false;
 							// -- Seteaza cati pini folosim de la dig0 pana la dig7 [ex: 0x00 - dig0 | 0x03 - dig0 -> dig3]
 							AS1115_Write(SCAN_LIMIT, 0x07);
 							//aici era 3 pentru teste pe PCB
 							index++;
 							break;
 						case 5:
+							i2c_succes = false;
 							// -- Seteaza pana la ce pin folosim decodificare pe digits [ex: 0x03 - 00000011 - Decodifica pe dig0 si dig1, ne luam dupa pozitia bitilor de la LSB la MSB]
 							AS1115_Write(DECODE_MODE, 0xFF);
 							index++;
 							break;
 						case 6:
+							i2c_succes = false;
 							// -- Seteaza Normal Mode fara modificari la Feature Register
 							AS1115_Write(SHUTDOWN, 0x81);
 							index++;
@@ -287,51 +298,48 @@ void Segments_Update(void){
 
 			case I2C_ERROR:
 				//pornim functia de recover
-				Recover_Bus_I2C();
-
-				// resetam flagurile si starea
-				reset_flag = 0;
-				i2c_succes = true;
-				i2c_error_flag = false;
-				index = 0;
-				indexDigits = 0;
-
+				if (!recover_in_progress) {
+					Recover_Bus_I2C();
+				}
 				break;
 
 			case OPERATIONAL:
+				// resetare flag
+				i2c_succes = false;
 				// afisam date
 				switch (indexDigits) {
 					case 0:
-						AS1115_Write((AS1115Registers_t)(DIGIT0), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT0), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 1:
-						AS1115_Write((AS1115Registers_t)(DIGIT1), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT1), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 2:
-						AS1115_Write((AS1115Registers_t)(DIGIT2), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT2), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 3:
-						AS1115_Write((AS1115Registers_t)(DIGIT3), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT3), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 4:
-						AS1115_Write((AS1115Registers_t)(DIGIT4), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT4), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 5:
-						AS1115_Write((AS1115Registers_t)(DIGIT5), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT5), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 6:
-						AS1115_Write((AS1115Registers_t)(DIGIT6), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT6), displayBuffer[indexDigits]);
 						indexDigits++;
 						break;
 					case 7:
-						AS1115_Write((AS1115Registers_t)(DIGIT7), 0x0F);
+						AS1115_Write((AS1115Registers_t)(DIGIT7), displayBuffer[indexDigits]);
 						indexDigits = 0;
+						break;
 				}
 				break;
 		}
@@ -348,7 +356,9 @@ static void Segments_State_Update(void){
 			}
 			break;
 		case I2C_ERROR:
-			i2c_system_state = INITIALIZING;
+			if (!recover_in_progress){
+				i2c_system_state = INITIALIZING;
+			}
 			break;
 		case OPERATIONAL:
 			if ( (i2c_succes != true) || (i2c_error_flag != false) ) {
@@ -358,6 +368,43 @@ static void Segments_State_Update(void){
 	}
 }
 
+void Timer_Callback(void){
+	if (!recover_in_progress) return;
+
+	if (recover_clk_count < 18U) {
+		Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, (Dio_LevelType)(recover_clk_count % 2U));
+	    recover_clk_count++;
+	} else {
+        Gpt_StopTimer(GPT_RECOVER_CHANNEL);
+        Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
+
+	    Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_ALT3);
+	    I2c_Init(NULL_PTR);
+
+	    recover_in_progress = false;
+	    recover_clk_count = 0;
+	    reset_flag = 0;
+	    i2c_succes = true;
+	    i2c_error_flag = false;
+	    index = 1;
+	    indexDigits = 0;
+	    i2c_system_state = INITIALIZING;
+	}
+}
+
+static void Recover_Bus_I2C(void) {
+	I2c_DeInit();
+	Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_AS_GPIO);
+	Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, 0);
+
+	recover_clk_count = 0;
+	recover_in_progress = true;
+
+	Gpt_EnableNotification(GPT_RECOVER_CHANNEL);
+    Gpt_StartTimer(GPT_RECOVER_CHANNEL, 160000U);
+}
+
+/*
 static void Recover_Bus_I2C(void) {
 	// timer la intreruperi
 	// oprim I2C-ul
@@ -382,7 +429,7 @@ static void Recover_Bus_I2C(void) {
 	indexDigits = 0;
 	i2c_succes = true;
 }
-
+*/
 
 #ifdef __cplusplus
 }
