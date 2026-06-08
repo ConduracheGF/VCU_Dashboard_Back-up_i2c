@@ -101,7 +101,7 @@ extern "C"{
 *
 * @brief Module Disable for PIT bit exists on current platform
 */
-#define PIT_IP_MDIS_BIT_EXISTS    (STD_ON)
+#define PIT_IP_MDIS_BIT_EXISTS    (STD_OFF)
 /**
 *
 * @brief PIT_IP_INSTANCE_GAP_EXISTS

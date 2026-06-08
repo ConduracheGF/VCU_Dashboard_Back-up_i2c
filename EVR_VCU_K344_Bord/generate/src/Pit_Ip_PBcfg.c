@@ -106,37 +106,6 @@ extern "C"{
  *================================================================================================*/
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
-
-
-const Pit_Ip_InstanceConfigType PIT_0_InitConfig_PB =
-{
-    /** @brief PIT Standard Timer */
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
-    ((boolean)(TRUE)), /* Enable standard timer */
-#endif
-#if(defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-    (boolean)(FALSE), /* Disable real time interrupt timer */
-#endif
-    /** @brief PIT Debug Mode */
-    (boolean)(FALSE) /* Enable/Disable Freeze Bit */
-}; 
-
-const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U] =
-{
-    /**@brief PitChannel_0 */ 
-    {
-        /** @brief PIT Channel Id */
-        0U,
-        /** @brief PIT Enable Interrupt */
-        (boolean)(TRUE),
-          /** @brief PIT callback name */
-        &Gpt_ProcessCommonInterrupt,
-          /** @brief PIT callbackparam  */
-        (uint8)2U,
-          /** @brief PIT channel mode  */
-        PIT_IP_CH_MODE_CONTINUOUS
-    }
-};
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 

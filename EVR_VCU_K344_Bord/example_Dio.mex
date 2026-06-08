@@ -2876,36 +2876,8 @@
                                  <array name="GptChannelEcucPartitionRef"/>
                                  <array name="GptWakeupConfiguration"/>
                               </struct>
-                              <struct name="2">
-                                 <setting name="Name" value="GptChannelConfiguration_for_timer_recover_i2c"/>
-                                 <setting name="GptChannelId" value="2"/>
-                                 <setting name="GptHwIp" value="PIT"/>
-                                 <setting name="GptModuleRef" value="/Gpt/Gpt/GptChannelConfigSet/Pit_0/PitChannel_0"/>
-                                 <setting name="GptChannelMode" value="GPT_CH_MODE_CONTINUOUS"/>
-                                 <setting name="GptChannelClkSrcRef" value="/Gpt/Gpt/GptDriverConfiguration/GptClockReferencePoint_0"/>
-                                 <setting name="GptChannelTickValueMax" value="4294967295"/>
-                                 <setting name="GptEnableWakeup" value="false"/>
-                                 <array name="GptNotification">
-                                    <setting name="0" value="Timer_Callback"/>
-                                 </array>
-                                 <array name="GptChannelEcucPartitionRef"/>
-                                 <array name="GptWakeupConfiguration"/>
-                              </struct>
                            </array>
-                           <array name="GptPit">
-                              <struct name="0">
-                                 <setting name="Name" value="Pit_0"/>
-                                 <setting name="GptPitModule" value="PIT_0"/>
-                                 <setting name="PitFreezeEnable" value="false"/>
-                                 <array name="GptPitChannels">
-                                    <struct name="0">
-                                       <setting name="Name" value="PitChannel_0"/>
-                                       <setting name="GptPitChannel" value="CH_0"/>
-                                       <setting name="ChainMode" value="false"/>
-                                    </struct>
-                                 </array>
-                              </struct>
-                           </array>
+                           <array name="GptPit"/>
                            <array name="GptStm"/>
                            <array name="GptRtc"/>
                            <array name="GptEmios">

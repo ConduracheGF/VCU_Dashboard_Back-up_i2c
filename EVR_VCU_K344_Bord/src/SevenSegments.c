@@ -368,43 +368,6 @@ static void Segments_State_Update(void){
 	}
 }
 
-void Timer_Callback(void){
-	if (!recover_in_progress) return;
-
-	if (recover_clk_count < 18U) {
-		Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, (Dio_LevelType)(recover_clk_count % 2U));
-	    recover_clk_count++;
-	} else {
-        Gpt_StopTimer(GPT_RECOVER_CHANNEL);
-        Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
-
-	    Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_ALT3);
-	    I2c_Init(NULL_PTR);
-
-	    recover_in_progress = false;
-	    recover_clk_count = 0;
-	    reset_flag = 0;
-	    i2c_succes = true;
-	    i2c_error_flag = false;
-	    index = 1;
-	    indexDigits = 0;
-	    i2c_system_state = INITIALIZING;
-	}
-}
-
-static void Recover_Bus_I2C(void) {
-	I2c_DeInit();
-	Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_AS_GPIO);
-	Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, 0);
-
-	recover_clk_count = 0;
-	recover_in_progress = true;
-
-	Gpt_EnableNotification(GPT_RECOVER_CHANNEL);
-    Gpt_StartTimer(GPT_RECOVER_CHANNEL, 160000U);
-}
-
-/*
 static void Recover_Bus_I2C(void) {
 	// timer la intreruperi
 	// oprim I2C-ul
@@ -429,7 +392,6 @@ static void Recover_Bus_I2C(void) {
 	indexDigits = 0;
 	i2c_succes = true;
 }
-*/
 
 #ifdef __cplusplus
 }
