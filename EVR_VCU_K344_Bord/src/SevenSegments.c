@@ -17,8 +17,7 @@ extern "C" {
 #include "CDD_I2c.h"
 #include "AS1115.h"
 #include "SevenSegments.h"
-#include "Siul2_Dio_Ip.h"
-#include "Siul2_Port_Ip.h"
+
 
 /*==================================================================================================
 *                          LOCAL TYPEDEFS (STRUCTURES, UNIONS, ENUMS)
@@ -31,7 +30,7 @@ extern "C" {
 #define SCL_PORT						IP_SIUL2
 #define SCL_PIN_IDX_CALCULAT			62U
 #define SCL_PIN_IDX_NORMAL				14U
-#define GPT_RECOVER_CHANNEL  GptConf_GptChannelConfiguration_GptChannelConfiguration_for_timer_recover_i2c
+#define GPT_RECOVER_CHANNEL  			GptConf_GptChannelConfiguration_GptChannelConfiguration_for_timer_recover_i2c
 
 /*==================================================================================================
 *                                      LOCAL CONSTANTS
@@ -69,18 +68,13 @@ static SegmentsState_t i2c_system_state = INITIALIZING;
 static uint8_t index = 0;
 // tot index dar mai junior in care se monitorizeaza scrierea in buffer
 static uint8_t indexDigits = 0;
+// pentru a face cele 9 clock uri la mana
+static uint8_t recover_clk_count = 0;
 
 // -- Variabile de flag pentru state machine
 // flag de eroare
 static bool i2c_error_flag = false;
-// flag care marcheaza ca o transmisie async este in zbor
-// se seteaza inainte de AsyncTransmit, se reseteaza in callback
-static bool i2c_tx_in_progress = false;
 
-// pentru a face cele 9 clock uri la mana
-static uint8_t recover_clk_count = 0;
-// pentru a marca recoverul
-static bool recover_in_progress = false;
 /*==================================================================================================
 *                                      GLOBAL CONSTANTS
 ==================================================================================================*/
@@ -94,108 +88,88 @@ static bool recover_in_progress = false;
 /*==================================================================================================
 *                                   LOCAL FUNCTION PROTOTYPES
 ==================================================================================================*/
-
+static void Segments_State_Update(void);
+static void Recover_Bus_I2C(void);
 
 /*==================================================================================================
 *                                       LOCAL FUNCTIONS
 ==================================================================================================*/
-//static void Segments_State_Update(void);
-static void Recover_Bus_I2C(void);
 
 void I2c_Callback(uint8 Event, uint8 Channel){
 	if (Channel != I2C_USED_CHANNEL) return;
 
-	if (Channel == I2C_USED_CHANNEL){
-		if (
-				Event == I2C_MASTER_EVENT_NACK ||
-				Event == I2C_MASTER_EVENT_ARBITRATION_LOST ||
-				Event == I2C_MASTER_EVENT_ERROR_FIFO ||
-				Event == I2C_MASTER_EVENT_PIN_LOW_TIMEOUT ||
-				Event == I2C_MASTER_EVENT_DMA_TRANSFER_ERROR
-		){
-			i2c_error_flag = true;
-			i2c_tx_in_progress = false;
-		} else if (Event == I2C_MASTER_EVENT_END_TRANSFER) {
-			i2c_tx_in_progress = false;
-
-			switch (i2c_system_state) {
-				case INITIALIZING:
-					if (i2c_error_flag) break;
-
-					if (index == 3){
-						indexDigits++;
-						if (indexDigits >= 8U){
-							indexDigits = 0U;
-							index++;
-						}
-					} else {
+	if (Event == I2C_MASTER_EVENT_END_TRANSFER) {
+		switch (i2c_system_state) {
+			case INITIALIZING:
+				if (index == 3){
+					indexDigits++;
+					if (indexDigits >= 8U){
+						indexDigits = 0U;
 						index++;
 					}
-					break;
-				case OPERATIONAL:
-					if (i2c_error_flag) break;
-						indexDigits = (indexDigits + 1U) % 8U;
-					break;
-				default:
-				    break;
-
-			}
-		} else {
-			//orice alt eveniment neasteptat => eroare, ca sa nu ramana in busy niciodata
-			i2c_error_flag = true;
-			i2c_tx_in_progress = false;
+				} else {
+					index++;
+				}
+				break;
+			case OPERATIONAL:
+				indexDigits = (indexDigits + 1U) % 8U;
+				break;
+			default:
+				break;
 		}
 	}
 }
 void I2c_ErrorCallback(uint8 Event, uint8 Channel){
 	if (Channel != I2C_USED_CHANNEL) return;
 
-	if (Channel == I2C_USED_CHANNEL){
-		if (
-				Event == I2C_MASTER_EVENT_NACK ||
-				Event == I2C_MASTER_EVENT_ARBITRATION_LOST ||
-				Event == I2C_MASTER_EVENT_ERROR_FIFO ||
-				Event == I2C_MASTER_EVENT_PIN_LOW_TIMEOUT ||
-				Event == I2C_MASTER_EVENT_DMA_TRANSFER_ERROR
-		){
+		if (Event == I2C_MASTER_EVENT_NACK ||
+			Event == I2C_MASTER_EVENT_ARBITRATION_LOST ||
+			Event == I2C_MASTER_EVENT_ERROR_FIFO ||
+			Event == I2C_MASTER_EVENT_PIN_LOW_TIMEOUT ||
+			Event == I2C_MASTER_EVENT_DMA_TRANSFER_ERROR)
+		{
 			i2c_error_flag = true;
-			i2c_tx_in_progress = false;
-		} else if (Event == I2C_MASTER_EVENT_END_TRANSFER) {
-			i2c_tx_in_progress = false;
-
-			switch (i2c_system_state) {
-				case INITIALIZING:
-					if (i2c_error_flag) break;
-
-					if (index == 3){
-						indexDigits++;
-						if (indexDigits >= 8U){
-							indexDigits = 0U;
-							index++;
-						}
-					} else {
-						index++;
-					}
-					break;
-				case OPERATIONAL:
-					if (i2c_error_flag) break;
-						indexDigits = (indexDigits + 1U) % 8U;
-					break;
-				default:
-				    break;
-
-			}
-		} else {
-			//orice alt eveniment neasteptat => eroare, ca sa nu ramana in busy niciodata
-			i2c_error_flag = true;
-			i2c_tx_in_progress = false;
 		}
-	}
 }
 
 /*==================================================================================================
 *                                       GLOBAL FUNCTIONS
 ==================================================================================================*/
+
+static void Recover_Bus_I2C(void) {
+	I2c_DeInit();
+
+	//setam pinul cu GPIO si il lasam pe HIGH
+	Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_AS_GPIO);
+	Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, 1);
+
+	recover_clk_count = 0;
+
+	Gpt_StopTimer(GPT_RECOVER_CHANNEL);
+    Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
+	Gpt_EnableNotification(GPT_RECOVER_CHANNEL);
+    Gpt_StartTimer(GPT_RECOVER_CHANNEL, 160000U);
+}
+
+void Timer_Callback(void){
+	if (i2c_system_state != I2C_ERROR) return;
+
+	if (recover_clk_count < 18U) {
+		Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, (Dio_LevelType)(recover_clk_count % 2U));
+	    recover_clk_count++;
+	} else {
+        Gpt_StopTimer(GPT_RECOVER_CHANNEL);
+        Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
+
+	    Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_ALT3);
+	    I2c_Init(NULL_PTR);
+
+	    index = 0;
+	    indexDigits = 0;
+	    recover_clk_count = 255U; // valoare maxima pentru resetare
+	}
+}
+
 
 void Segments_Init(void){
 
@@ -303,78 +277,74 @@ void Segments_Set(SegmentsMonitoredValue_t SelectedMonitor, uint16_t Value){
 }
 
 void Segments_Update(void){
-	//pentru operatii neterminate, intrerupem cererile noi
-	if (i2c_tx_in_progress) return;
+	//modificam starea sistemului inainte de executie
+	Segments_State_Update();
 
-	//daca e eroare, redirectam catre I2C_ERROR
-	if (i2c_error_flag && i2c_system_state != I2C_ERROR){
-		i2c_system_state = I2C_ERROR;
-		return;
-	}
+	// Inlocuitor nativ pentru i2c_tx_in_progress prin interogarea statusului hardware al canalului
+	if (i2c_system_state != I2C_ERROR) {
+		if (
+				I2c_GetStatus(I2C_USED_CHANNEL) == I2C_CH_SEND ||
+				I2c_GetStatus(I2C_USED_CHANNEL) == I2C_CH_RECEIVE
+			) {
+				return; //daca transmite protejam busul
+			}
+		}
 
 	switch (i2c_system_state) {
 		case INITIALIZING:
-			if (I2c_GetStatus(I2C_USED_CHANNEL) == I2C_CH_SEND ||
-			    I2c_GetStatus(I2C_USED_CHANNEL) == I2C_CH_RECEIVE) break;
+			//dupa revenirea din eroare, resetam pentru timer
+			if (recover_clk_count == 255U){
+				recover_clk_count = 0U;
+			}
+
 			switch (index) {
 				case 0:
-					i2c_tx_in_progress = true;					// -- Seteaza modul Shutdown cu Reset Feature Register
 					AS1115_Async_Write(SHUTDOWN, 0x00);
 					break;
 				case 1:
-					i2c_tx_in_progress = true;					// -- Seteaza Luminozitatea Globala la 7 Segment Display-uri
 					AS1115_Async_Write(GLOBAL_INTENSITY, 0x0F);
 					break;
 				case 2:
-					i2c_tx_in_progress = true;					// -- Schimba Feature Register pentru modul de decodificare al 7 Segment Display
 					AS1115_Async_Write(FEATURE, 0x00);
 					break;
 				case 3:
-					i2c_tx_in_progress = true;					// -- Seteaza ca toate Segmentele de pe display sa fie stinse
 					// -- Se pune cifra cu cifra
 					AS1115_Async_Write((AS1115Registers_t)(DIGIT0 + indexDigits), 0x0F);
 					break;
 				case 4:
-					i2c_tx_in_progress = true;
 					// -- Seteaza cati pini folosim de la dig0 pana la dig7 [ex: 0x00 - dig0 | 0x03 - dig0 -> dig3]
 					AS1115_Async_Write(SCAN_LIMIT, 0x07);
 					break;
 				case 5:
-					i2c_tx_in_progress = true;
 					// -- Seteaza pana la ce pin folosim decodificare pe digits [ex: 0x03 - 00000011 - Decodifica pe dig0 si dig1, ne luam dupa pozitia bitilor de la LSB la MSB]
 					AS1115_Async_Write(DECODE_MODE, 0xFF);
 					break;
 				case 6:
-					i2c_tx_in_progress = true;
 					// -- Seteaza Normal Mode fara modificari la Feature Register
 					AS1115_Async_Write(SHUTDOWN, 0x81);
 					break;
 				case 7:
-					//back-up de necesitate
-					i2c_system_state = OPERATIONAL;
-					index = 0;
-					indexDigits = 0;
+					//se face tranzitia din Segments_State_Update
+					break;
 				default:
 					break;
 			}
 			break;
 
 		case I2C_ERROR:
-			//pornim functia de recover
-			if (!recover_in_progress) {
+			//pornim reinitializarea bus-ului o singura data
+			if (recover_clk_count == 0U) {
 				Recover_Bus_I2C();
-				recover_in_progress = true;
+				recover_clk_count = 1U; // evitam reapelarea functiei
+				i2c_error_flag = false;
 			}
 			break;
 
 		case OPERATIONAL:
             // indexDigits avanseaza in callback dupa fiecare END_TRANSFER
-            i2c_tx_in_progress = true;
             AS1115_Async_Write((AS1115Registers_t)(DIGIT0 + indexDigits),displayBuffer[indexDigits]);
             break;
 	}
-
-	//Segments_State_Update();
 }
 
 static void Segments_State_Update(void){
@@ -382,12 +352,14 @@ static void Segments_State_Update(void){
 		case INITIALIZING:
 			if ( i2c_error_flag == false && index == 7 ) {
 				i2c_system_state = OPERATIONAL;
+				index = 0;
+				indexDigits = 0;
 			} else if ( i2c_error_flag == true ) {
 				i2c_system_state = I2C_ERROR;
 			}
 			break;
 		case I2C_ERROR:
-			if (!recover_in_progress){
+			if (recover_clk_count == 255U){
 				i2c_system_state = INITIALIZING;
 			}
 			break;
@@ -397,45 +369,6 @@ static void Segments_State_Update(void){
 			}
 			break;
 	}
-}
-
-void Timer_Callback(void){
-	if (!recover_in_progress) return;
-
-	if (recover_clk_count < 18U) {
-		Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, (Dio_LevelType)(recover_clk_count % 2U));
-	    recover_clk_count++;
-	} else {
-        Gpt_StopTimer(GPT_RECOVER_CHANNEL);
-        Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
-
-	    Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_ALT3);
-	    I2c_Init(NULL_PTR);
-
-	    i2c_error_flag = false;
-	    i2c_tx_in_progress = false;
-	    recover_in_progress = false;
-
-	    index = 0;
-	    indexDigits = 0;
-	    recover_clk_count = 0;
-
-	    i2c_system_state = INITIALIZING;
-	}
-}
-
-static void Recover_Bus_I2C(void) {
-	I2c_DeInit();
-	Port_SetPinMode(SCL_PIN_IDX_NORMAL, PORT_MUX_AS_GPIO);
-	Dio_WriteChannel(SCL_PIN_IDX_CALCULAT, 0);
-
-	recover_clk_count = 0;
-
-	Gpt_StopTimer(GPT_RECOVER_CHANNEL);
-    Gpt_DisableNotification(GPT_RECOVER_CHANNEL);
-
-	Gpt_EnableNotification(GPT_RECOVER_CHANNEL);
-    Gpt_StartTimer(GPT_RECOVER_CHANNEL, 160000U);
 }
 
 #ifdef __cplusplus
