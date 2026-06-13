@@ -152,11 +152,8 @@ void Segments_Test(void){
 	static uint16_t test_temperature = 0;
 	//counter pentru controlul refresh
 	static uint32_t loop_counter = 0;
-	static uint8_t counter = 0;
 
 	while(1){
-		counter++;
-		if (counter == 100){
 		// -- Actualizam valorile de test
 		test_speed = (test_speed + 1) % 10000; //viteza urca pana la 999 km/h
 		test_temperature = (loop_counter % 1000); //temperatura variaza intre 20-60 grade
@@ -169,8 +166,7 @@ void Segments_Test(void){
 				test_battery = 1000;
 			}
 		}
-		counter = 0;
-		}
+
 		// -- Mapam pe grupurile de digituri valorile de test
 		Segments_Set(SPEED_KMH, test_speed);
 		Segments_Set(BATTERY_PERCENTAGE, test_battery);
