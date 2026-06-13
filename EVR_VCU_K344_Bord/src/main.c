@@ -115,29 +115,13 @@ int main(void)
 	CanIf_Init(NULL_PTR);
 
 
-    /* Wdg_43_fs26 initialization */
-   volatile Std_ReturnType eReturnValue = E_OK;      /* Error status. */
-    //eReturnValue |= Sbc_fs26_Init(NULL_PTR);
-    //Wdg_43_fs26_Init(NULL_PTR);
-
-    //eReturnValue |= Sbc_fs26_InitDevice();
-    //eReturnValue |= Wdg_43_fs26_SetMode(WDGIF_OFF_MODE);
-   if(eReturnValue == E_OK){
-    	Dio_WriteChannel(140, 0);
-    	Dio_WriteChannel(142, 1);
-    }
-    else{
-    	Dio_WriteChannel(140, 1);
-    	Dio_WriteChannel(142, 0);
-    }
-
-
-    //Segments_Init();
+    Segments_Init();
+    //SegmentsTimeoutTest();
     Segments_Test();
-	Display_Init(); //sa pornesti aici
-	/*while(1){
-		Display_Test();
-	}*/
+
+
+	Display_Init();
+	//Display_Test();
 
 	PedalsInit();
 	DacInit();

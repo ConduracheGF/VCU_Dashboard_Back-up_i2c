@@ -101,7 +101,7 @@ extern "C"{
  *================================================================================================*/
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
-const Emios_Gpt_Ip_ChannelConfigType EMIOS_0_ChannelConfig_PB[2U] =
+const Emios_Gpt_Ip_ChannelConfigType EMIOS_0_ChannelConfig_PB[4U] =
 {
     {
         /** @brief Emios Freeze Enable */
@@ -139,6 +139,44 @@ const Emios_Gpt_Ip_ChannelConfigType EMIOS_0_ChannelConfig_PB[2U] =
         (uint8)1U,
         /** @brief eMios channel mode  */
         EMIOS_GPT_IP_CH_MODE_CONTINUOUS
+    }
+,
+    {
+        /** @brief Emios Freeze Enable */
+        (boolean)(TRUE), /* Freeze Enable */
+#if(EMIOS_GPT_IP_SET_CLOCK_MODE == STD_ON)
+        /** @brief Emios Alternate Prescaler Value */
+        0U,
+#endif
+        /** @brief Emios Prescaler Value */
+        3U,
+        /** @brief Emios Channel Id */
+        6U,
+        /** @brief Emios callback name */
+        &Gpt_ProcessCommonInterrupt,
+        /** @brief Emios callbackparam */
+        (uint8)2U,
+        /** @brief eMios channel mode  */
+        EMIOS_GPT_IP_CH_MODE_ONESHOT
+    }
+,
+    {
+        /** @brief Emios Freeze Enable */
+        (boolean)(TRUE), /* Freeze Enable */
+#if(EMIOS_GPT_IP_SET_CLOCK_MODE == STD_ON)
+        /** @brief Emios Alternate Prescaler Value */
+        0U,
+#endif
+        /** @brief Emios Prescaler Value */
+        15U,
+        /** @brief Emios Channel Id */
+        7U,
+        /** @brief Emios callback name */
+        &Gpt_ProcessCommonInterrupt,
+        /** @brief Emios callbackparam */
+        (uint8)3U,
+        /** @brief eMios channel mode  */
+        EMIOS_GPT_IP_CH_MODE_ONESHOT
     }
 };
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED

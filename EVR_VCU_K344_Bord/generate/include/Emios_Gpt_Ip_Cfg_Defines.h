@@ -100,6 +100,18 @@ extern "C"{
 #else
     #error "EMIOS_0_CH_5 interrupt cannot be used by Gpt driver. Channel locked by other driver!"
 #endif
+#ifndef EMIOS_0_CH_6_ISR_USED
+    #define GPT_EMIOS_0_CH_6_ISR_USED
+    #define EMIOS_0_CH_6_ISR_USED
+#else
+    #error "EMIOS_0_CH_6 interrupt cannot be used by Gpt driver. Channel locked by other driver!"
+#endif
+#ifndef EMIOS_0_CH_7_ISR_USED
+    #define GPT_EMIOS_0_CH_7_ISR_USED
+    #define EMIOS_0_CH_7_ISR_USED
+#else
+    #error "EMIOS_0_CH_7 interrupt cannot be used by Gpt driver. Channel locked by other driver!"
+#endif
 
 /*==================================================================================================
 *                                             ENUMS

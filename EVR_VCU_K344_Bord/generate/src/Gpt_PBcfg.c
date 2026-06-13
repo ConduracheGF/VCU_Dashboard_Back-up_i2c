@@ -114,7 +114,7 @@ extern "C"{
 * @brief The callback functions defined by the user to be called as channel notifications
 */
 extern void Gpt_Pedals(void);
-extern void Timer_Callback(void);
+extern void I2c_timer_timeout(void);
 
 /*==================================================================================================
 *                                       GLOBAL CONSTANTS
@@ -122,7 +122,7 @@ extern void Timer_Callback(void);
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 /* Number of channels per variant without partitions */
-#define GPT_CONF_CHANNELS_PB 3U
+#define GPT_CONF_CHANNELS_PB 4U
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 
@@ -152,7 +152,8 @@ static const uint8 u8GptChannelIdToIndexMap[GPT_NUM_CONFIG] =
 {
     0        /*Logical Channel Gpt_FS26*/,
     1        /*Logical Channel Gpt_Pedale*/,
-    2        /*Logical Channel GptChannelConfiguration_for_timer_recover_i2c*/
+    2        /*Logical Channel I2c_recovery_clock_timer*/,
+    3        /*Logical Channel I2c_timeout_timer*/
 };
 #define GPT_STOP_SEC_CONST_UNSPECIFIED
 #include "Gpt_MemMap.h"
@@ -187,26 +188,37 @@ static const Gpt_ChannelConfigType Gpt_InitChannelPB[GPT_CONF_CHANNELS_PB]=
         &Gpt_Ipw_ChannelConfig_PB[1U]
     }
 ,
-    {    /*GptChannelConfiguration_for_timer_recover_i2c configuration data*/
+    {    /*I2c_recovery_clock_timer configuration data*/
         (boolean)FALSE,/* Wakeup capability */
-        &Timer_Callback, /* Channel notification */
+        NULL_PTR, /* Channel notification */
 #if ((GPT_WAKEUP_FUNCTIONALITY_API == STD_ON) && (GPT_REPORT_WAKEUP_SOURCE == STD_ON))
         (EcuM_WakeupSourceType)0U,/* Wakeup information */
 #endif
-        (Gpt_ValueType)(4294967295U),/* Maximum ticks value*/
-        (GPT_CH_MODE_CONTINUOUS),/* Timer mode:continous/one-shot */
+        (Gpt_ValueType)(65535U),/* Maximum ticks value*/
+        (GPT_CH_MODE_ONESHOT),/* Timer mode:continous/one-shot */
         &Gpt_Ipw_ChannelConfig_PB[2U]
+    }
+,
+    {    /*I2c_timeout_timer configuration data*/
+        (boolean)FALSE,/* Wakeup capability */
+        &I2c_timer_timeout, /* Channel notification */
+#if ((GPT_WAKEUP_FUNCTIONALITY_API == STD_ON) && (GPT_REPORT_WAKEUP_SOURCE == STD_ON))
+        (EcuM_WakeupSourceType)0U,/* Wakeup information */
+#endif
+        (Gpt_ValueType)(65535U),/* Maximum ticks value*/
+        (GPT_CH_MODE_ONESHOT),/* Timer mode:continous/one-shot */
+        &Gpt_Ipw_ChannelConfig_PB[3U]
     }
 };
 
 const Gpt_ConfigType Gpt_Config = 
 {
     /** @brief Number of GPT channels (configured in tresos plugin builder)*/
-    (Gpt_ChannelType)3U,
+    (Gpt_ChannelType)4U,
     /**@brief Pointer to the GPT channel configuration */
     &Gpt_InitChannelPB,
     /** @brief Number of GPT instances (configured in tresos plugin builder)*/
-    2U,
+    1U,
     /** @brief Pointer to the GPT instance configuration */
     &Gpt_Ipw_HwInstanceConfig_PB,
 #if(GPT_PREDEFTIMER_FUNCTIONALITY_API == STD_ON)

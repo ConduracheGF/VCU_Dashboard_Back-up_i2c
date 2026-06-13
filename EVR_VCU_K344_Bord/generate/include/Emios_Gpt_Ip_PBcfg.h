@@ -99,7 +99,7 @@ extern "C"
 ==================================================================================================*/
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
-extern const Emios_Gpt_Ip_ChannelConfigType EMIOS_0_ChannelConfig_PB[2U];
+extern const Emios_Gpt_Ip_ChannelConfigType EMIOS_0_ChannelConfig_PB[4U];
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 

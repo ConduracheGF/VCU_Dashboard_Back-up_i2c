@@ -122,7 +122,7 @@ extern "C"{
 * @brief    GPT_TIME_REMAINING_API switch
 * @details  Enable/disable GPT_VERSION_INFO_API.
 */
-#define GPT_TIME_REMAINING_API       (STD_OFF)
+#define GPT_TIME_REMAINING_API       (STD_ON)
 /*================================================================================================*/
 /**
 * @brief    GPT_ENABLE_DISABLE_NOTIFICATION_API switch
@@ -207,13 +207,14 @@ extern "C"{
 */
 #define GptConf_GptChannelConfiguration_Gpt_FS26 (0U)
 #define GptConf_GptChannelConfiguration_Gpt_Pedale (1U)
-#define GptConf_GptChannelConfiguration_GptChannelConfiguration_for_timer_recover_i2c (2U)
+#define GptConf_GptChannelConfiguration_I2c_recovery_clock_timer (2U)
+#define GptConf_GptChannelConfiguration_I2c_timeout_timer (3U)
 /*================================================================================================*/
 /**
 * @brief       GPT_HW_CHANNEL_NUM
 * @details     The maximum number of HW channels. This is used to allocate memory space for channel runtime info.
 */
-#define GPT_HW_CHANNEL_NUM      (3U)
+#define GPT_HW_CHANNEL_NUM      (4U)
 /*================================================================================================*/
 /**
 * @brief        GPT_MAX_PARTITIONS_CFG.
@@ -231,7 +232,7 @@ extern "C"{
 * @brief        GPT_NUM_CONFIG.
 * @details      Number of ChannelConfiguration
 */
-#define GPT_NUM_CONFIG       (3U)
+#define GPT_NUM_CONFIG       (4U)
 /*================================================================================================*/
 /**
 *   @brief      GPT_HW_PREDEFTIMER_NUM

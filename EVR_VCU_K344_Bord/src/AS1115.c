@@ -12,6 +12,7 @@ extern "C" {
 
 #include "AS1115.h"
 #include "CDD_I2c.h"
+#include "Gpt.h"
 
 /*==================================================================================================
 *                          LOCAL TYPEDEFS (STRUCTURES, UNIONS, ENUMS)
@@ -136,6 +137,7 @@ void AS1115_Async_Write(AS1115Registers_t SelectedRegister, uint8_t Value){
 
 		// trimitem datele si primim statusul livrarii
 		I2c_AsyncTransmit(I2C_USED_CHANNEL, &request); //cerere pe canalul 0
+		Gpt_StartTimer(GPT_TIMEOUT_CHANNEL, GPT_TIMEOUT_CLOCKS);
 	}
 }
 

@@ -76,7 +76,7 @@ extern "C"{
 /**
 * @brief These defines indicate that at least one channel from each module is used in all configurations.
 */
-#define PIT_IP_USED   (STD_ON) 
+#define PIT_IP_USED  (STD_OFF) 
 #define PIT_IP_RTI_USED   (STD_OFF) 
 #define PIT_IP_RTI_CHANNEL_EXISTS
 /**
@@ -89,7 +89,6 @@ extern "C"{
 *
 * @brief IRQ Defines for each channel used
 */
-#define PIT_0_ISR_USED 
 
 /**
 *
@@ -101,7 +100,7 @@ extern "C"{
 *
 * @brief Module Disable for PIT bit exists on current platform
 */
-#define PIT_IP_MDIS_BIT_EXISTS    (STD_ON)
+#define PIT_IP_MDIS_BIT_EXISTS    (STD_OFF)
 /**
 *
 * @brief PIT_IP_INSTANCE_GAP_EXISTS
